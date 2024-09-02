@@ -1,49 +1,141 @@
 package ru.derendyaev.bot;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class EvokerBotService extends TelegramLongPollingBot {
 
+    @Value("${telegram.bot.username}")
+    private String botUsername;
+
+    @Value("${telegram.bot.token}")
+    private String botToken;
+
     @Override
     public void onUpdateReceived(Update update) {
-        System.out.println(update);
 
-        String userName = null;
-        Long userId = null;
-        String textToSend = null;
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            String command = update.getMessage().getText();
+            System.out.println(update);
 
-        userId = update.getMessage().getChatId();
-        userName = update.getMessage().getFrom().getUserName();
-        textToSend = String.format(
-                "User ID: %d\n " +
-                        "Username: %s\n " +
-                        "Message: %s",
-                userId, userName, update.getMessage().getText());
+            Long userId = update.getMessage().getChatId();
+            String userName = update.getMessage().getFrom().getUserName();
+            String userMessage = update.getMessage().getText();
 
+            switch (command) {
+                case "/whenAwake":
+                    LocalDateTime telegramTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(update.getMessage().getDate()), ZoneId.systemDefault());
+                    List<LocalDateTime> timeAwakeList = List.of(
+                            telegramTime.plusHours(1).plusMinutes(30),
+                            telegramTime.plusHours(3),
+                            telegramTime.plusHours(4).plusMinutes(30),
+                            telegramTime.plusHours(6),
+                            telegramTime.plusHours(7).plusMinutes(30),
+                            telegramTime.plusHours(9)
+                    );
+                    sendMessageWithButtons(update.getMessage().getChatId(), timeAwakeList);
+                    break;
+                default:
+                    String textToSend = "Send me command:\n" +
+                            "/whenAwake";
+
+                    sendMessageToUser(userId, textToSend);
+            }
+        }
+
+        if (update.hasCallbackQuery()) {
+            handleCallback(update.getCallbackQuery());
+        }
+    }
+
+    private void sendMessageWithButtons(Long chatId, List<LocalDateTime> timeAwakeList) {
         SendMessage message = new SendMessage();
-        message.setChatId(userId);
-        message.setText(textToSend);
+        message.setChatId(chatId);
+        message.setText("Вы можете проснуться в:");
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        int counter = 0;
+        for (LocalDateTime time : timeAwakeList) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            String buttonText = String.format("%d:%d", time.getHour(), time.getMinute());
+            button.setText(buttonText);
+            button.setCallbackData(buttonText);
+            row.add(button);
+
+            if (++counter % 3 == 0) {
+                rows.add(row);
+                row = new ArrayList<>();
+            }
+        }
+
+        if (!row.isEmpty()) {
+            rows.add(row);
+        }
+
+        inlineKeyboardMarkup.setKeyboard(rows);
+        message.setReplyMarkup(inlineKeyboardMarkup);
 
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+    }
 
+    private void handleCallback(CallbackQuery callbackQuery) {
+        String callbackData = callbackQuery.getData();  // Получаем значение кнопки
+        Long chatId = callbackQuery.getMessage().getChatId();  // Получаем chatId
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("Ставь будильник на: " + callbackData + "\nСладких снов)");
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void sendMessageToUser(Long chatId, String text) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            System.err.println("Failed to send message: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override
     public String getBotUsername() {
-        return "@HedgehogQueueBot";
+        return botUsername;
     }
 
     @Override
     public String getBotToken() {
-        return "5714181264:AAHGrmqcQqtzki1vEw2x6aoTM2-BzMedGGo";
+        return botToken;
     }
 }
