@@ -33,8 +33,6 @@ public class EvokerBotService extends TelegramLongPollingBot {
             System.out.println(update);
 
             Long userId = update.getMessage().getChatId();
-            String userName = update.getMessage().getFrom().getUserName();
-            String userMessage = update.getMessage().getText();
 
             switch (command) {
                 case "/whenAwake":
