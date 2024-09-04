@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - develop
-  pull-request:
-    branches:
-      - develop
+      - feature/awakeMode
 
 jobs:
   install-and-test:
