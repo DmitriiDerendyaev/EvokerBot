@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -63,7 +64,8 @@ public class EvokerBotService extends TelegramLongPollingBot {
     private void sendMessageWithButtons(Long chatId, List<LocalDateTime> timeAwakeList) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Вы можете проснуться в:");
+         // TODO: Добавить опционально
+         // message.setText(getRecommendedSleepTime(timeAwakeList));
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -96,6 +98,13 @@ public class EvokerBotService extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getRecommendedSleepTime(List<LocalDateTime> timeAwakeList) {
+        return String.format("Рекомендуется проснуться в %d:%d или %d:%d, чтобы сон прошел 5-6 полных циклов\n" +
+                        "Вы можете проснуться в:",
+                timeAwakeList.get(timeAwakeList.size()-2).getHour(), timeAwakeList.get(timeAwakeList.size()-2).getMinute(),
+                timeAwakeList.get(timeAwakeList.size()-1).getHour(), timeAwakeList.get(timeAwakeList.size()-1).getMinute());
     }
 
     private void handleCallback(CallbackQuery callbackQuery) {
