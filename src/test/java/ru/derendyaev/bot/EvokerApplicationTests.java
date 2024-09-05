@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class EvokerApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    public void emptyTest() {
 
+    }
 }
