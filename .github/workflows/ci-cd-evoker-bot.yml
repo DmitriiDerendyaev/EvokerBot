@@ -23,4 +23,9 @@ jobs:
         run: mvn clean install -DskipTests
 
       - name: Run tests
+        env:
+          BOT_NAME: ${{ secrets.BOT_NAME }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: mvn test
+
+
