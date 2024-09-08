@@ -8,7 +8,7 @@ on:
 
 jobs:
   install-and-build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
         run: mvn clean install -DskipTests
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: install-and-build
     steps:
       - name: Run tests
