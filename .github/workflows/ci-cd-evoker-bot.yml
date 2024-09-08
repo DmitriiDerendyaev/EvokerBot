@@ -24,7 +24,7 @@ jobs:
 
   test:
     runs-on: self-hosted
-    needed: install-and-build
+    needs: install-and-build
     steps:
       - name: Run tests
         env:
