@@ -37,6 +37,6 @@ jobs:
 
       - name: Run tests
         env:
-          BOT_NAME: ${{ secrets.BOT_NAME }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_NAME_TEST: ${{ secrets.BOT_NAME_TEST }}
+          BOT_TOKEN_TEST: ${{ secrets.BOT_TOKEN_TEST }}
         run: mvn test -Dspring.profiles.active=local
