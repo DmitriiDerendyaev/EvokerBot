@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: evoker
+
+telegram:
+  bot:
+    username: ${BOT_NAME_TEST:@horoscopeDaily_V2Bot}
+    token: ${BOT_TOKEN_TEST:6337075396:AAHdA3BJUlTRemUY1UVodYs_eYr-5L4m5OE}
