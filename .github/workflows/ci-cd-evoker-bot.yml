@@ -40,3 +40,19 @@ jobs:
           BOT_NAME_TEST: ${{ secrets.BOT_NAME_TEST }}
           BOT_TOKEN_TEST: ${{ secrets.BOT_TOKEN_TEST }}
         run: mvn test -Dspring.profiles.active=local
+
+  docker-build:
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest
