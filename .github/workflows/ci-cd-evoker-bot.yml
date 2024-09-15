@@ -42,6 +42,9 @@ jobs:
         run: mvn test -Dspring.profiles.active=local
 
       - name: Package the application
+        env:
+          BOT_NAME_TEST: ${{ secrets.BOT_NAME }}
+          BOT_TOKEN_TEST: ${{ secrets.BOT_TOKEN }}
         run: mvn clean package
 
   docker-build:
