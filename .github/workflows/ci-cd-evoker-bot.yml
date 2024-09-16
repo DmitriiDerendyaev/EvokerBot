@@ -49,6 +49,4 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest
-
-      - name: Log out from Docker Hub
-        run: docker logout
+          build-args: JAR_FILE=${{ github.workspace }}/target/app.jar
