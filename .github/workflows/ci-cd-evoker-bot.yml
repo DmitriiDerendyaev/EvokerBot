@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SDK 17
+      - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
@@ -22,43 +22,33 @@ jobs:
       - name: Install dependencies
         run: mvn clean install -DskipTests
 
-  test:
+      - name: Package the application
+        run: mvn clean package -DskipTests
+
+  docker-build-and-push:
     runs-on: self-hosted
     needs: install-and-build
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up SDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Run tests
-        env:
-          BOT_NAME_TEST: ${{ secrets.BOT_NAME_TEST }}
-          BOT_TOKEN_TEST: ${{ secrets.BOT_TOKEN_TEST }}
-        run: mvn test -Dspring.profiles.active=local
-
-      - name: Package the application
-        env:
-          BOT_NAME_TEST: ${{ secrets.BOT_NAME }}
-          BOT_TOKEN_TEST: ${{ secrets.BOT_TOKEN }}
-        run: mvn clean package -DskipTests
-
-  docker-build:
-    runs-on: self-hosted
-    needs: test
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
+      # Шаг для входа в Docker Hub
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest .
+      # Шаг для сборки и пуша Docker-образа с Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/evoker-bot:latest
+
+      - name: Log out from Docker Hub
+        run: docker logout
