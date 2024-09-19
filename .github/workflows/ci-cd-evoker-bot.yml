@@ -25,10 +25,6 @@ jobs:
       - name: Package the application
         run: mvn clean package -DskipTests
 
-  docker-build-and-push:
-    runs-on: self-hosted
-    needs: install-and-build
-    steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
